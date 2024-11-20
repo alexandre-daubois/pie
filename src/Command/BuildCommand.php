@@ -37,6 +37,7 @@ final class BuildCommand extends Command
         parent::configure();
 
         CommandHelper::configureDownloadBuildInstallOptions($this);
+        CommandHelper::configureDryRunOption($this);
     }
 
     public function execute(InputInterface $input, OutputInterface $output): int

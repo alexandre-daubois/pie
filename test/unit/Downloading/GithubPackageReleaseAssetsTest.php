@@ -42,6 +42,7 @@ final class GithubPackageReleaseAssetsTest extends TestCase
             ThreadSafetyMode::ThreadSafe,
             1,
             WindowsCompiler::VC14,
+            false,
         );
 
         $authHelper = $this->createMock(AuthHelper::class);
@@ -100,6 +101,7 @@ final class GithubPackageReleaseAssetsTest extends TestCase
             ThreadSafetyMode::ThreadSafe,
             1,
             WindowsCompiler::VC14,
+            false,
         );
 
         $authHelper = $this->createMock(AuthHelper::class);
@@ -153,6 +155,7 @@ final class GithubPackageReleaseAssetsTest extends TestCase
             ThreadSafetyMode::ThreadSafe,
             1,
             WindowsCompiler::VC14,
+            false,
         );
 
         $authHelper = $this->createMock(AuthHelper::class);

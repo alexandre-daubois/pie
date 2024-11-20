@@ -21,6 +21,7 @@ use function sprintf;
 final class UnixInstall implements Install
 {
     private const MAKE_INSTALL_TIMEOUT_SECS = 60; // 1 minute
+    private const EMPTY_STRING_SHA256       = 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855';
 
     public function __invoke(DownloadedPackage $downloadedPackage, TargetPlatform $targetPlatform, OutputInterface $output): BinaryFile
     {
@@ -47,18 +48,20 @@ final class UnixInstall implements Install
             array_unshift($makeInstallCommand, 'sudo');
         }
 
-        $makeInstallOutput = Process::run(
-            $makeInstallCommand,
-            $downloadedPackage->extractedSourcePath,
-            self::MAKE_INSTALL_TIMEOUT_SECS,
-        );
+        if (! $targetPlatform->dryRun) {
+            $makeInstallOutput = Process::run(
+                $makeInstallCommand,
+                $downloadedPackage->extractedSourcePath,
+                self::MAKE_INSTALL_TIMEOUT_SECS,
+            );
 
-        if ($output->isVeryVerbose()) {
-            $output->writeln($makeInstallOutput);
-        }
+            if ($output->isVeryVerbose()) {
+                $output->writeln($makeInstallOutput);
+            }
 
-        if (! file_exists($expectedSharedObjectLocation)) {
-            throw new RuntimeException('Install failed, ' . $expectedSharedObjectLocation . ' was not installed.');
+            if (! file_exists($expectedSharedObjectLocation)) {
+                throw new RuntimeException('Install failed, ' . $expectedSharedObjectLocation . ' was not installed.');
+            }
         }
 
         $output->writeln('<info>Install complete:</info> ' . $expectedSharedObjectLocation);
@@ -73,6 +76,10 @@ final class UnixInstall implements Install
             $downloadedPackage->package->extensionType === ExtensionType::PhpModule ? 'extension' : 'zend_extension',
             $downloadedPackage->package->extensionName->name(),
         ));
+
+        if ($targetPlatform->dryRun) {
+            return new BinaryFile($expectedSharedObjectLocation, self::EMPTY_STRING_SHA256);
+        }
 
         return BinaryFile::fromFileWithSha256Checksum($expectedSharedObjectLocation);
     }

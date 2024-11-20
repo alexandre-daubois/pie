@@ -57,6 +57,7 @@ final class ResolveDependencyWithComposerTest extends TestCase
             ThreadSafetyMode::ThreadSafe,
             1,
             null,
+            false,
         );
 
         $package = (new ResolveDependencyWithComposer(
@@ -101,6 +102,7 @@ final class ResolveDependencyWithComposerTest extends TestCase
             ThreadSafetyMode::ThreadSafe,
             1,
             null,
+            false,
         );
 
         $this->expectException(UnableToResolveRequirement::class);
@@ -146,6 +148,7 @@ final class ResolveDependencyWithComposerTest extends TestCase
             ThreadSafetyMode::NonThreadSafe,
             1,
             null,
+            false,
         );
 
         $this->expectException(IncompatibleThreadSafetyMode::class);
@@ -191,6 +194,7 @@ final class ResolveDependencyWithComposerTest extends TestCase
             ThreadSafetyMode::ThreadSafe,
             1,
             null,
+            false,
         );
 
         $this->expectException(IncompatibleThreadSafetyMode::class);

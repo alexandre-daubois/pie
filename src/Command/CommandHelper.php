@@ -38,6 +38,7 @@ final class CommandHelper
     private const OPTION_WITH_PHP_PATH              = 'with-php-path';
     private const OPTION_WITH_PHPIZE_PATH           = 'with-phpize-path';
     private const OPTION_MAKE_PARALLEL_JOBS         = 'make-parallel-jobs';
+    private const OPTION_DRY_RUN                    = 'dry-run';
 
     /** @psalm-suppress UnusedConstructor */
     private function __construct()
@@ -89,6 +90,16 @@ final class CommandHelper
         $command->ignoreValidationErrors();
     }
 
+    public static function configureDryRunOption(Command $command): void
+    {
+        $command->addOption(
+            self::OPTION_DRY_RUN,
+            null,
+            InputOption::VALUE_NONE,
+            'Do not actually download, build, or install the extension, just show the commands that would be run.',
+        );
+    }
+
     public static function validateInput(InputInterface $input, Command $command): void
     {
         $input->bind($command->getDefinition());
@@ -138,7 +149,12 @@ final class CommandHelper
             }
         }
 
-        $targetPlatform = TargetPlatform::fromPhpBinaryPath($phpBinaryPath, $makeParallelJobs);
+        $dryRun = false;
+        if ($input->hasOption(self::OPTION_DRY_RUN)) {
+            $dryRun = (bool) $input->getOption(self::OPTION_DRY_RUN);
+        }
+
+        $targetPlatform = TargetPlatform::fromPhpBinaryPath($phpBinaryPath, $makeParallelJobs, $dryRun);
 
         $output->writeln(sprintf('<info>You are running PHP %s</info>', PHP_VERSION));
         $output->writeln(sprintf(

@@ -23,6 +23,7 @@ final class UnixBuild implements Build
     private const PHPIZE_TIMEOUT_SECS    = 60; // 1 minute
     private const CONFIGURE_TIMEOUT_SECS = 120; // 2 minutes
     private const MAKE_TIMEOUT_SECS      = null; // unlimited
+    private const EMPTY_STRING_SHA256    = 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855';
 
     /** {@inheritDoc} */
     public function __invoke(
@@ -50,6 +51,7 @@ final class UnixBuild implements Build
             $downloadedPackage,
             $output,
             $outputCallback,
+            $targetPlatform->dryRun,
         );
 
         $output->writeln('<info>phpize complete</info>.');
@@ -59,23 +61,41 @@ final class UnixBuild implements Build
             $configureOptions[] = '--with-php-config=' . $phpConfigPath;
         }
 
-        $this->configure($downloadedPackage, $configureOptions, $output, $outputCallback);
+        $this->configure(
+            $downloadedPackage,
+            $configureOptions,
+            $output,
+            $outputCallback,
+            $targetPlatform->dryRun,
+        );
 
         $optionsOutput = count($configureOptions) ? ' with options: ' . implode(' ', $configureOptions) : '.';
         $output->writeln('<info>Configure complete</info>' . $optionsOutput);
 
-        $this->make($targetPlatform, $downloadedPackage, $output, $outputCallback);
+        $this->make(
+            $targetPlatform,
+            $downloadedPackage,
+            $output,
+            $outputCallback,
+            $targetPlatform->dryRun,
+        );
 
         $expectedSoFile = $downloadedPackage->extractedSourcePath . '/modules/' . $downloadedPackage->package->extensionName->name() . '.so';
 
-        if (! file_exists($expectedSoFile)) {
-            throw ExtensionBinaryNotFound::fromExpectedBinary($expectedSoFile);
+        if (! $targetPlatform->dryRun) {
+            if (! file_exists($expectedSoFile)) {
+                throw ExtensionBinaryNotFound::fromExpectedBinary($expectedSoFile);
+            }
         }
 
         $output->writeln(sprintf(
             '<info>Build complete:</info> %s',
             $expectedSoFile,
         ));
+
+        if ($targetPlatform->dryRun) {
+            return new BinaryFile($expectedSoFile, self::EMPTY_STRING_SHA256); // sha256 of empty string
+        }
 
         return BinaryFile::fromFileWithSha256Checksum($expectedSoFile);
     }
@@ -86,11 +106,16 @@ final class UnixBuild implements Build
         DownloadedPackage $downloadedPackage,
         OutputInterface $output,
         callable|null $outputCallback,
+        bool $dryRun,
     ): void {
         $phpizeCommand = [$phpize->phpizeBinaryPath];
 
         if ($output->isVerbose()) {
             $output->writeln('<comment>Running phpize step using: ' . implode(' ', $phpizeCommand) . '</comment>');
+        }
+
+        if ($dryRun) {
+            return;
         }
 
         Process::run(
@@ -110,11 +135,16 @@ final class UnixBuild implements Build
         array $configureOptions,
         OutputInterface $output,
         callable|null $outputCallback,
+        bool $dryRun,
     ): void {
         $configureCommand = ['./configure', ...$configureOptions];
 
         if ($output->isVerbose()) {
             $output->writeln('<comment>Running configure step with: ' . implode(' ', $configureCommand) . '</comment>');
+        }
+
+        if ($dryRun) {
+            return;
         }
 
         Process::run(
@@ -131,6 +161,7 @@ final class UnixBuild implements Build
         DownloadedPackage $downloadedPackage,
         OutputInterface $output,
         callable|null $outputCallback,
+        bool $dryRun,
     ): void {
         $makeCommand = ['make'];
 
@@ -142,6 +173,10 @@ final class UnixBuild implements Build
 
         if ($output->isVerbose()) {
             $output->writeln('<comment>Running make step with: ' . implode(' ', $makeCommand) . '</comment>');
+        }
+
+        if ($dryRun) {
+            return;
         }
 
         Process::run(

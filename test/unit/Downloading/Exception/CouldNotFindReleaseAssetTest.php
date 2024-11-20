@@ -68,6 +68,7 @@ final class CouldNotFindReleaseAssetTest extends TestCase
             ThreadSafetyMode::NonThreadSafe,
             1,
             null,
+            false,
         ));
 
         self::assertSame('Could not determine Windows Compiler for PHP ' . $phpBinary->version() . ' on NonWindows', $exception->getMessage());

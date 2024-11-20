@@ -28,6 +28,7 @@ class TargetPlatform
         public readonly ThreadSafetyMode $threadSafety,
         public readonly int $makeParallelJobs,
         public readonly WindowsCompiler|null $windowsCompiler,
+        public readonly bool $dryRun,
     ) {
     }
 
@@ -36,7 +37,7 @@ class TargetPlatform
         return function_exists('posix_getuid') && posix_getuid() === 0;
     }
 
-    public static function fromPhpBinaryPath(PhpBinaryPath $phpBinaryPath, int|null $makeParallelJobs): self
+    public static function fromPhpBinaryPath(PhpBinaryPath $phpBinaryPath, int|null $makeParallelJobs, bool $dryRun): self
     {
         $os = $phpBinaryPath->operatingSystem();
 
@@ -119,6 +120,7 @@ class TargetPlatform
             $threadSafety,
             $makeParallelJobs,
             $windowsCompiler,
+            $dryRun,
         );
     }
 }

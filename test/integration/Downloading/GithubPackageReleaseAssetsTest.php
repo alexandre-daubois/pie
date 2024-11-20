@@ -39,6 +39,7 @@ final class GithubPackageReleaseAssetsTest extends TestCase
             ThreadSafetyMode::ThreadSafe,
             1,
             WindowsCompiler::VS16,
+            false,
         );
 
         $package = new Package(

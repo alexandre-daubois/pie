@@ -36,6 +36,7 @@ final class WindowsExtensionAssetNameTest extends TestCase
             ThreadSafetyMode::ThreadSafe,
             1,
             WindowsCompiler::VC14,
+            false,
         );
 
         $this->phpVersion = $this->platform->phpBinaryPath->majorMinorVersion();

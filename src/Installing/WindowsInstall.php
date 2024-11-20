@@ -31,6 +31,8 @@ use const DIRECTORY_SEPARATOR;
 /** @internal This is not public API for PIE, so should not be depended upon unless you accept the risk of BC breaks */
 final class WindowsInstall implements Install
 {
+    private const EMPTY_STRING_SHA256 = 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855';
+
     public function __invoke(DownloadedPackage $downloadedPackage, TargetPlatform $targetPlatform, OutputInterface $output): BinaryFile
     {
         $extractedSourcePath = $downloadedPackage->extractedSourcePath;
@@ -82,6 +84,10 @@ final class WindowsInstall implements Install
             $downloadedPackage->package->extensionName->name(),
         ));
 
+        if ($targetPlatform->dryRun) {
+            return new BinaryFile($destinationDllName, self::EMPTY_STRING_SHA256);
+        }
+
         return BinaryFile::fromFileWithSha256Checksum($destinationDllName);
     }
 
@@ -105,6 +111,10 @@ final class WindowsInstall implements Install
     {
         $destinationDllName = $targetPlatform->phpBinaryPath->extensionPath() . DIRECTORY_SEPARATOR
             . 'php_' . $downloadedPackage->package->extensionName->name() . '.dll';
+
+        if ($targetPlatform->dryRun) {
+            return $destinationDllName;
+        }
 
         if (! copy($sourceDllName, $destinationDllName) || ! file_exists($destinationDllName) && ! is_file($destinationDllName)) {
             throw new RuntimeException('Failed to install DLL to ' . $destinationDllName);
@@ -133,6 +143,10 @@ final class WindowsInstall implements Install
         $destinationPdbName = str_replace('.dll', '.pdb', $destinationDllName);
         assert($destinationPdbName !== '');
 
+        if ($targetPlatform->dryRun) {
+            return $destinationPdbName;
+        }
+
         if (! copy($sourcePdbName, $destinationPdbName) || ! file_exists($destinationPdbName) && ! is_file($destinationPdbName)) {
             throw new RuntimeException('Failed to install PDB to ' . $destinationPdbName);
         }
@@ -156,6 +170,10 @@ final class WindowsInstall implements Install
 
         $destinationExtraDll = dirname($targetPlatform->phpBinaryPath->phpBinaryPath) . DIRECTORY_SEPARATOR . $file->getFilename();
 
+        if ($targetPlatform->dryRun) {
+            return $destinationExtraDll;
+        }
+
         if (! copy($file->getPathname(), $destinationExtraDll) || ! file_exists($destinationExtraDll) && ! is_file($destinationExtraDll)) {
             throw new RuntimeException('Failed to copy to ' . $destinationExtraDll);
         }
@@ -176,6 +194,10 @@ final class WindowsInstall implements Install
             . substr($file->getPathname(), strlen($downloadedPackage->extractedSourcePath) + 1);
 
         $destinationPath = dirname($destinationFullFilename);
+
+        if ($targetPlatform->dryRun) {
+            return $destinationFullFilename;
+        }
 
         if (! file_exists($destinationPath)) {
             mkdir($destinationPath, 0777, true);

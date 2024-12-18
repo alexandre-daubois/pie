@@ -164,6 +164,11 @@ final class PhpBinaryPathTest extends TestCase
         );
     }
 
+    public function testOperatingSystemWithInvalidConfiguration(): void
+    {
+        $this->fail();
+    }
+
     public function testMajorMinorVersion(): void
     {
         self::assertSame(

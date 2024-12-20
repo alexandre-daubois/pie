@@ -11,6 +11,7 @@ use Php\Pie\DependencyResolver\Package;
 use Php\Pie\Downloading\DownloadedPackage;
 use Php\Pie\Installing\Install;
 
+use Php\Pie\Platform\Git\GitBinaryPath;
 use function sprintf;
 
 /** @internal This is not public API for PIE, so should not be depended upon unless you accept the risk of BC breaks */
@@ -36,6 +37,13 @@ class InstallAndBuildProcess
             Package::fromComposerCompletePackage($composerPackage),
             $installPath,
         );
+
+        $output->writeln('Cloning submodules...');
+        $git = GitBinaryPath::fromGitBinaryPath('/opt/homebrew/bin/git');
+        $output->writeln($git->fetchSubmodules($downloadedPackage->extractedSourcePath));
+        $output->writeln($downloadedPackage->extractedSourcePath);
+
+        die;
 
         $output->writeln(sprintf(
             '<info>Extracted %s source to:</info> %s',
